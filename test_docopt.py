@@ -633,3 +633,16 @@ def test_choices():
           """
     with pytest.raises(AssertionError):
         docopt(doc, '--data=D')
+
+
+# https://github.com/docopt/docopt/issues/259
+def test_blank_line_between_options():
+    doc = """Usage: prog [options]
+
+Options:
+  -d --data=<data>    Input data [default: 10] [type: int]
+
+  -i --input=<input>    Input [default: 0.1] [type: float]
+"""
+    a = docopt(doc, '')
+    assert a == {'--data': 10, '--input': 0.1}
