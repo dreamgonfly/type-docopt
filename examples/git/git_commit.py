@@ -43,7 +43,7 @@ Commit contents options
                           [default: all]
 
 """
-from docopt import docopt
+from type_docopt import docopt
 
 
 if __name__ == '__main__':

@@ -23,7 +23,7 @@
     --depth <depth>       create a shallow clone of that depth
 
 """
-from docopt import docopt
+from type_docopt import docopt
 
 
 if __name__ == '__main__':

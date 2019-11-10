@@ -10,7 +10,7 @@ Options:
 """
 import os
 
-from docopt import docopt
+from type_docopt import docopt
 try:
     from schema import Schema, And, Or, Use, SchemaError
 except ImportError:

@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-from docopt import docopt, DocoptExit
+from type_docopt import docopt, DocoptExit
 import sys, json
 
 doc = sys.stdin.read()

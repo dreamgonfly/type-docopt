@@ -569,7 +569,7 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False, types=N
 
     Example
     -------
-    >>> from docopt import docopt
+    >>> from type_docopt import docopt
     >>> doc = '''
     Usage:
         my_program tcp <host> <port> [--timeout=<seconds>]
