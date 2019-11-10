@@ -1,6 +1,6 @@
 from setuptools import setup
 
-from docopt import __version__
+from type_docopt import __version__
 
 
 setup(

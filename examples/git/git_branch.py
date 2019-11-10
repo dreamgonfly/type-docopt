@@ -26,7 +26,7 @@ Specific git-branch actions:
     --merged=<commit>     print only merged branches
 
 """
-from docopt import docopt
+from type_docopt import docopt
 
 
 if __name__ == '__main__':

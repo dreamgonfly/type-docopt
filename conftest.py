@@ -6,7 +6,7 @@ except ImportError:
 
 import pytest
 
-import docopt
+import type_docopt
 
 
 def pytest_collect_file(path, parent):
@@ -54,8 +54,8 @@ class DocoptTestItem(pytest.Item):
 
     def runtest(self):
         try:
-            result = docopt.docopt(self.doc, argv=self.argv)
-        except docopt.DocoptExit:
+            result = type_docopt.docopt(self.doc, argv=self.argv)
+        except type_docopt.DocoptExit:
             result = 'user-error'
 
         if self.expect != result:

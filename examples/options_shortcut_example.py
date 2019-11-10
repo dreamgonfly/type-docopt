@@ -12,7 +12,7 @@ Options:
   -q                       operate in quiet mode
 
 """
-from docopt import docopt
+from type_docopt import docopt
 
 
 if __name__ == '__main__':
