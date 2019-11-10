@@ -2,7 +2,7 @@ from __future__ import with_statement
 
 import pytest
 
-from docopt import (docopt, DocoptExit, DocoptLanguageError,
+from type_docopt import (docopt, DocoptExit, DocoptLanguageError,
                     Option, Argument, Command, AnyOptions,
                     Required, Optional, Either, OneOrMore,
                     parse_argv, parse_pattern, #parse_defaults,
