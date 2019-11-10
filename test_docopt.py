@@ -1,4 +1,7 @@
 from __future__ import with_statement
+
+import pytest
+
 from docopt import (docopt, DocoptExit, DocoptLanguageError,
                     Option, Argument, Command, AnyOptions,
                     Required, Optional, Either, OneOrMore,
@@ -582,3 +585,92 @@ def test_issue_85_any_option_multiple_subcommands():
                   'fail --loglevel 5') ==  {'--loglevel': '5',
                                             'fail': True,
                                             'good': False}
+
+
+usage = '''usage: this
+
+usage:hai
+usage: this that
+
+usage: foo
+       bar
+
+PROGRAM USAGE:
+ foo
+ bar
+usage:
+\ttoo
+\ttar
+Usage: eggs spam
+BAZZ
+usage: pit stop'''
+
+
+def test_parse_section():
+    assert parse_section('usage:', 'foo bar fizz buzz') == []
+    assert parse_section('usage:', 'usage: prog') == ['usage: prog']
+    assert parse_section('usage:',
+                         'usage: -x\n -y') == ['usage: -x\n -y']
+    assert parse_section('usage:', usage) == [
+            'usage: this',
+            'usage:hai',
+            'usage: this that',
+            'usage: foo\n       bar',
+            'PROGRAM USAGE:\n foo\n bar',
+            'usage:\n\ttoo\n\ttar',
+            'Usage: eggs spam',
+            'usage: pit stop',
+    ]
+
+
+def test_issue_126_defaults_not_parsed_correctly_when_tabs():
+    section = 'Options:\n\t--foo=<arg>  [default: bar]'
+    assert parse_defaults(section) == [Option(None, '--foo', 1, 'bar')]
+
+
+def test_types():
+    doc = """Usage: prog [--data=<data>]\n
+                 Options:\n\t-d --data=<data>    Input data [type: float]
+              """
+    a = docopt(doc, '--data=0.1')
+    assert a == {'--data': 0.1}
+    doc = """Usage: prog [--data=<data>]\n
+             Options:\n\t-d --data=<data>    Input data [default: 10] [type: int]
+          """
+    a = docopt(doc, '')
+    assert a == {'--data': 10}
+
+
+def test_user_defined_types():
+    doc = """Usage: prog [--data=<data>]\n
+                     Options:\n\t-d --data=<data>    Input data [type: Foo]
+                  """
+    class Foo:
+        def __init__(self, number):
+            self.number = int(number)
+            assert self.number < 10
+
+    a = docopt(doc, '--data=1', types={'Foo': Foo})
+    assert a == {'--data': Foo('1')}
+
+    with pytest.raises(AssertionError):
+        docopt(doc, '--data=20', types={'Foo': Foo})
+
+
+def test_choices():
+    doc = """Usage: prog [--data=<data>]\n
+                 Options:\n\t-d --data=<data>    Input data [choices: A B C]
+              """
+    a = docopt(doc, '--data=A')
+    assert a == {'--data': 'A'}
+    doc = """Usage: prog [--data=<data>]\n
+                     Options:\n\t-d --data=<data>    Input data [choices: A B C] [default: C]
+                  """
+    a = docopt(doc, '')
+    assert a == {'--data': 'C'}
+
+    doc = """Usage: prog [--data=<data>]\n
+             Options:\n\t-d --data=<data>    Input data [choices: A B C]
+          """
+    with pytest.raises(AssertionError):
+        docopt(doc, '--data=D')
