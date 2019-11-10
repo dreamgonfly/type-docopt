@@ -587,47 +587,6 @@ def test_issue_85_any_option_multiple_subcommands():
                                             'good': False}
 
 
-usage = '''usage: this
-
-usage:hai
-usage: this that
-
-usage: foo
-       bar
-
-PROGRAM USAGE:
- foo
- bar
-usage:
-\ttoo
-\ttar
-Usage: eggs spam
-BAZZ
-usage: pit stop'''
-
-
-def test_parse_section():
-    assert parse_section('usage:', 'foo bar fizz buzz') == []
-    assert parse_section('usage:', 'usage: prog') == ['usage: prog']
-    assert parse_section('usage:',
-                         'usage: -x\n -y') == ['usage: -x\n -y']
-    assert parse_section('usage:', usage) == [
-            'usage: this',
-            'usage:hai',
-            'usage: this that',
-            'usage: foo\n       bar',
-            'PROGRAM USAGE:\n foo\n bar',
-            'usage:\n\ttoo\n\ttar',
-            'Usage: eggs spam',
-            'usage: pit stop',
-    ]
-
-
-def test_issue_126_defaults_not_parsed_correctly_when_tabs():
-    section = 'Options:\n\t--foo=<arg>  [default: bar]'
-    assert parse_defaults(section) == [Option(None, '--foo', 1, 'bar')]
-
-
 def test_types():
     doc = """Usage: prog [--data=<data>]\n
                  Options:\n\t-d --data=<data>    Input data [type: float]
