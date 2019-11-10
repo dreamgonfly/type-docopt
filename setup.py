@@ -12,7 +12,7 @@ setup(
     license='MIT',
     keywords='option arguments parsing optparse argparse getopt',
     url='http://docopt.org',
-    py_modules=['docopt'],
+    py_modules=['type_docopt'],
     long_description=open('README.rst').read(),
     classifiers=[
         'Development Status :: 3 - Alpha',
