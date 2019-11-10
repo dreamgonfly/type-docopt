@@ -11,7 +11,7 @@ import re
 
 
 __all__ = ['docopt']
-__version__ = '0.6.2'
+__version__ = '0.1.0'
 
 TYPE_MAP = {
     'int': int,

@@ -4,15 +4,15 @@ from type_docopt import __version__
 
 
 setup(
-    name='docopt',
+    name='type-docopt',
     version=__version__,
-    author='Vladimir Keleshev',
-    author_email='vladimir@keleshev.com',
-    description='Pythonic argument parser, that will make you smile',
+    author='Yongrae Jo',
+    author_email='dreamgonfly@gmail.com',
+    description='Pythonic argument parser, with type validation',
     license='MIT',
     keywords='option arguments parsing optparse argparse getopt',
     url='http://docopt.org',
-    py_modules=['docopt'],
+    py_modules=['type_docopt'],
     long_description=open('README.rst').read(),
     classifiers=[
         'Development Status :: 3 - Alpha',
