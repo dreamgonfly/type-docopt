@@ -1,7 +1,5 @@
 from __future__ import with_statement
 
-import pytest
-
 from type_docopt import (docopt, DocoptExit, DocoptLanguageError,
                     Option, Argument, Command, AnyOptions,
                     Required, Optional, Either, OneOrMore,
@@ -588,50 +586,52 @@ def test_issue_85_any_option_multiple_subcommands():
 
 
 def test_types():
-    doc = """Usage: prog [--data=<data>]\n
-                 Options:\n\t-d --data=<data>    Input data [type: float]
-              """
+    doc = """Usage: prog [options]\n
+Options:\n  -d --data=<data>    Input data [type: float]"""
     a = docopt(doc, '--data=0.1')
     assert a == {'--data': 0.1}
     doc = """Usage: prog [--data=<data>]\n
-             Options:\n\t-d --data=<data>    Input data [default: 10] [type: int]
-          """
+Options:\n  -d --data=<data>    Input data [default: 10] [type: int]
+"""
     a = docopt(doc, '')
     assert a == {'--data': 10}
 
 
 def test_user_defined_types():
     doc = """Usage: prog [--data=<data>]\n
-                     Options:\n\t-d --data=<data>    Input data [type: Foo]
+                     Options:\n  -d --data=<data>    Input data [type: Foo]
                   """
     class Foo:
         def __init__(self, number):
             self.number = int(number)
             assert self.number < 10
 
+        def __eq__(self, other):
+            return self.number == other.number
+
     a = docopt(doc, '--data=1', types={'Foo': Foo})
     assert a == {'--data': Foo('1')}
 
-    with pytest.raises(AssertionError):
+    with raises(AssertionError):
         docopt(doc, '--data=20', types={'Foo': Foo})
 
 
 def test_choices():
     doc = """Usage: prog [--data=<data>]\n
-                 Options:\n\t-d --data=<data>    Input data [choices: A B C]
+                 Options:\n  -d --data=<data>    Input data [choices: A B C]
               """
     a = docopt(doc, '--data=A')
     assert a == {'--data': 'A'}
     doc = """Usage: prog [--data=<data>]\n
-                     Options:\n\t-d --data=<data>    Input data [choices: A B C] [default: C]
+                     Options:\n  -d --data=<data>    Input data [choices: A B C] [default: C]
                   """
     a = docopt(doc, '')
     assert a == {'--data': 'C'}
 
     doc = """Usage: prog [--data=<data>]\n
-             Options:\n\t-d --data=<data>    Input data [choices: A B C]
+             Options:\n  -d --data=<data>    Input data [choices: A B C]
           """
-    with pytest.raises(AssertionError):
+    with raises(AssertionError):
         docopt(doc, '--data=D')
 
 
