@@ -32,3 +32,8 @@ nosetests.xml
 
 # Sphinx
 docs/_*
+
+# jython
+*$py.class
+
+.idea/
