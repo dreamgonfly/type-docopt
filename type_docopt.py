@@ -211,6 +211,7 @@ class Option(ChildPattern):
         else:
             self.choices = None
 
+        self.raw_value = value
         value = self.update_value(value)
         self.value = None if value is False and argcount else value
 
@@ -361,7 +362,7 @@ def parse_long(tokens, options):
             o = Option(None, long, argcount, value if argcount else True)
     else:
         o = Option(similar[0].short, similar[0].long,
-                   similar[0].argcount, similar[0].value, similar[0].type_value, similar[0].choices_value, similar[0].types)
+                   similar[0].argcount, similar[0].raw_value, similar[0].type_value, similar[0].choices_value, similar[0].types)
         if o.argcount == 0:
             if value is not None:
                 raise tokens.error('%s must not have an argument' % o.long)
