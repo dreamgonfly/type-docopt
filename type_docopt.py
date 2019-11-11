@@ -612,7 +612,7 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False, types=N
                       options_first)
     pattern_options = set(pattern.flat(Option))
     for ao in pattern.flat(AnyOptions):
-        doc_options = parse_defaults(doc)
+        doc_options = parse_defaults(doc, types)
         ao.children = list(set(doc_options) - pattern_options)
         #if any_options:
         #    ao.children += [Option(o.short, o.long, o.argcount)
