@@ -615,6 +615,18 @@ def test_user_defined_types():
     with raises(AssertionError):
         docopt(doc, '--data=20', types={'Foo': Foo})
 
+    doc = """Usage: prog [--data=<data>]\n
+                         Options:\n  -d --data=<data>    Input data [type: Foo] [default: 5]
+                      """
+    a = docopt(doc, '', types={'Foo': Foo})
+    assert a == {'--data': Foo('5')}
+
+    doc = """Usage: prog [options]\n
+    Options:\n  -d --data <data>  Input data [type: Foo]
+    """
+    a = docopt(doc, '', types={'Foo': Foo})
+    assert a == {'--data': None}
+
 
 def test_choices():
     doc = """Usage: prog [--data=<data>]\n
