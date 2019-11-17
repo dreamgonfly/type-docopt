@@ -192,35 +192,17 @@ class Command(Argument):
 
 class Option(ChildPattern):
 
-    def __init__(self, short=None, long=None, argcount=0, value=False, type_value=None, choices_value=None, types=None):
+    def __init__(self, short=None, long=None, argcount=0, value=False, type_value=None, choices_value=None):
         assert argcount in (0, 1)
-        self.short, self.long, self.argcount = short, long, argcount
-
-        if type_value is not None:
-            if types is not None:
-                type_map = dict(**TYPE_MAP, **types)
-            else:
-                type_map = TYPE_MAP
-            assert type_value in type_map
-
-            self.type_class = type_map[type_value]
-        else:
-            self.type_class = None
-        if choices_value is not None:
-            self.choices = [choice.strip() for choice in choices_value.split(' ')]
-        else:
-            self.choices = None
-
-        self.raw_value = value
-        value = self.update_value(value)
+        self.short, self.long = short, long
+        self.argcount, self.value = argcount, value
         self.value = None if value is False and argcount else value
 
         self.type_value = type_value
         self.choices_value = choices_value
-        self.types = types
 
     @classmethod
-    def parse(class_, option_description, types=None):
+    def parse(class_, option_description):
         short, long, argcount, value = None, None, 0, False
         options, _, description = option_description.strip().partition('  ')
         options = options.replace(',', ' ').replace('=', ' ')
@@ -241,22 +223,13 @@ class Option(ChildPattern):
         choices_matched = re.findall('\[choices: (.*?)\]', description, flags=re.I)
         choices_value = choices_matched[0] if choices_matched else None
 
-        return class_(short, long, argcount, value, type_value, choices_value, types)
+        return class_(short, long, argcount, value, type_value, choices_value)
 
     def single_match(self, left):
         for n, p in enumerate(left):
             if self.name == p.name:
                 return n, p
         return None, None
-
-    def update_value(self, value):
-        if value is not None and not isinstance(value, bool) and self.choices is not None:
-            assert value in self.choices
-
-        if value is not None and not isinstance(value, bool) and self.type_class is not None:
-            value = self.type_class(value)
-
-        return value
 
     @property
     def name(self):
@@ -362,7 +335,7 @@ def parse_long(tokens, options):
             o = Option(None, long, argcount, value if argcount else True)
     else:
         o = Option(similar[0].short, similar[0].long,
-                   similar[0].argcount, similar[0].raw_value, similar[0].type_value, similar[0].choices_value, similar[0].types)
+                   similar[0].argcount, similar[0].value, similar[0].type_value, similar[0].choices_value)
         if o.argcount == 0:
             if value is not None:
                 raise tokens.error('%s must not have an argument' % o.long)
@@ -372,8 +345,7 @@ def parse_long(tokens, options):
                     raise tokens.error('%s requires argument' % o.long)
                 value = tokens.move()
         if tokens.error is DocoptExit:
-            o.value = o.update_value(value if value is not None else True)
-
+            o.value = value if value is not None else True
     return [o]
 
 
@@ -496,11 +468,11 @@ def parse_argv(tokens, options, options_first=False):
     return parsed
 
 
-def parse_defaults(doc, types=None):
+def parse_defaults(doc):
     # in python < 2.7 you can't pass flags=re.MULTILINE
     split = re.split('\n *(<\S+?>|-\S+?)', doc)[1:]
     split = [s1 + s2 for s1, s2 in zip(split[::2], split[1::2])]
-    options = [Option.parse(s, types) for s in split if s.startswith('-')]
+    options = [Option.parse(s) for s in split if s.startswith('-')]
     #arguments = [Argument.parse(s) for s in split if s.startswith('<')]
     #return options, arguments
     return options
@@ -602,7 +574,7 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False, types=N
     if argv is None:
         argv = sys.argv[1:]
     DocoptExit.usage = printable_usage(doc)
-    options = parse_defaults(doc, types)
+    options = parse_defaults(doc)
     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
     # [default] syntax for argument is disabled
     #for a in pattern.flat(Argument):
@@ -613,7 +585,7 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False, types=N
                       options_first)
     pattern_options = set(pattern.flat(Option))
     for ao in pattern.flat(AnyOptions):
-        doc_options = parse_defaults(doc, types)
+        doc_options = parse_defaults(doc)
         ao.children = list(set(doc_options) - pattern_options)
         #if any_options:
         #    ao.children += [Option(o.short, o.long, o.argcount)
