@@ -511,7 +511,7 @@ def validate_value(o, types=None):
 
     if o.choices_value is not None:
         choices = [choice.strip() for choice in o.choices_value.split(' ')]
-        assert o.value in choices
+        assert o.value in choices, f"{o.value} is not in {choices}"
 
     if o.type_value is not None:
         if types is not None:
