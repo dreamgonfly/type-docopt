@@ -231,30 +231,13 @@ class Option(ChildPattern):
                 return n, p
         return None, None
 
-    def validated_value(self, types=None):
-        if self.choices_value is not None:
-            choices = [choice.strip() for choice in self.choices_value.strip(' ')]
-            assert self.value in choices
-
-        if self.type_value is not None:
-            if types is not None:
-                type_map = dict(**TYPE_MAP, **types)
-            else:
-                type_map = TYPE_MAP
-            assert self.type_value in type_map
-
-            type_class = type_map[self.type_value]
-            self.value = type_class(self.value)
-
-        return self.value
-
     @property
     def name(self):
         return self.long or self.short
 
     def __repr__(self):
-        return 'Option(%r, %r, %r, %r)' % (self.short, self.long,
-                                           self.argcount, self.value)
+        return 'Option(%r, %r, %r, %r, %r, %r)' % (self.short, self.long,
+                                           self.argcount, self.value, self.type_value, self.choices_value)
 
 
 class Required(ParentPattern):
@@ -385,7 +368,7 @@ def parse_shorts(tokens, options):
                 o = Option(short, None, 0, True)
         else:  # why copying is necessary here?
             o = Option(short, similar[0].long,
-                       similar[0].argcount, similar[0].value)
+                       similar[0].argcount, similar[0].value, similar[0].type_value, similar[0].choices_value)
             value = None
             if o.argcount != 0:
                 if left == '':
@@ -519,6 +502,30 @@ def extras(help, version, options, doc):
         sys.exit()
 
 
+def validate_value(o, types=None):
+    if not isinstance(o, Option):
+        return o.value
+
+    if o.value is None:
+        return o.value
+
+    if o.choices_value is not None:
+        choices = [choice.strip() for choice in o.choices_value.split(' ')]
+        assert o.value in choices
+
+    if o.type_value is not None:
+        if types is not None:
+            type_map = dict(**TYPE_MAP, **types)
+        else:
+            type_map = TYPE_MAP
+        assert o.type_value in type_map
+
+        type_class = type_map[o.type_value]
+        o.value = type_class(o.value)
+
+    return o.value
+
+
 class Dict(dict):
     def __repr__(self):
         return '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(self.items()))
@@ -610,5 +617,5 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False, types=N
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
-        return Dict((a.name, a.validated_value(types=types)) for a in (pattern.flat() + collected))
+        return Dict((a.name, validate_value(a, types=types)) for a in (pattern.flat() + collected))
     raise DocoptExit()
