@@ -595,6 +595,11 @@ Options:\n  -d --data=<data>    Input data [default: 10] [type: int]
 """
     a = docopt(doc, '')
     assert a == {'--data': 10}
+    doc = """Usage: prog [--data=<data>]\n
+    Options:\n  -d --data=<data>    Input data [default: 10] [type: int]
+    """
+    a = docopt(doc, '--data=30')
+    assert a == {'--data': 30}
 
 
 def test_user_defined_types():
