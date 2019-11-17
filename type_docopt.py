@@ -231,6 +231,23 @@ class Option(ChildPattern):
                 return n, p
         return None, None
 
+    def validated_value(self, types=None):
+        if self.choices_value is not None:
+            choices = [choice.strip() for choice in self.choices_value.strip(' ')]
+            assert self.value in choices
+
+        if self.type_value is not None:
+            if types is not None:
+                type_map = dict(**TYPE_MAP, **types)
+            else:
+                type_map = TYPE_MAP
+            assert self.type_value in type_map
+
+            type_class = type_map[self.type_value]
+            self.value = type_class(self.value)
+
+        return self.value
+
     @property
     def name(self):
         return self.long or self.short
@@ -593,5 +610,5 @@ def docopt(doc, argv=None, help=True, version=None, options_first=False, types=N
     extras(help, version, argv, doc)
     matched, left, collected = pattern.fix().match(argv)
     if matched and left == []:  # better error message if left?
-        return Dict((a.name, a.value) for a in (pattern.flat() + collected))
+        return Dict((a.name, a.validated_value(types=types)) for a in (pattern.flat() + collected))
     raise DocoptExit()
