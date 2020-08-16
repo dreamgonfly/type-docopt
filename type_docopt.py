@@ -794,7 +794,7 @@ def docopt(
 
     Example
     -------
-    >>> from docopt import docopt
+    >>> from type_docopt import docopt
     >>> doc = '''
     ... Usage:
     ...     my_program tcp <host> <port> [--timeout=<seconds>]
@@ -820,18 +820,7 @@ def docopt(
     argv = sys.argv[1:] if argv is None else argv
     maybe_frame = inspect.currentframe()
     if maybe_frame:
-        parent_frame = doc_parent_frame = magic_parent_frame = maybe_frame.f_back
-    if not more_magic:  # make sure 'magic' isn't in the calling name
-        while not more_magic and magic_parent_frame:
-            imported_as = {
-                v: k
-                for k, v in magic_parent_frame.f_globals.items()
-                if hasattr(v, "__name__") and v.__name__ == docopt.__name__
-            }.get(docopt)
-            if imported_as and "magic" in imported_as:
-                more_magic = True
-            else:
-                magic_parent_frame = magic_parent_frame.f_back
+        parent_frame = doc_parent_frame = maybe_frame.f_back
     if not docstring:  # go look for one, if none exists, raise Exception
         while not docstring and doc_parent_frame:
             docstring = doc_parent_frame.f_locals.get("__doc__")
