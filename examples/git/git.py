@@ -3,9 +3,13 @@
 usage: git [--version] [--exec-path=<path>] [--html-path]
            [-p|--paginate|--no-pager] [--no-replace-objects]
            [--bare] [--git-dir=<path>] [--work-tree=<path>]
-           [-c name=value]
+           [-c <name>=<value>] [--help]
            <command> [<args>...]
-       git [--help]
+
+options:
+   -c <name=value>
+   -h, --help
+   -p, --paginate
 
 The most commonly used git commands are:
    add        Add file contents to the index
@@ -24,24 +28,26 @@ from subprocess import call
 from type_docopt import docopt
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
-    args = docopt(__doc__,
-                  version='git version 1.7.4.4',
-                  options_first=True)
+    args = docopt(__doc__, version="git version 1.7.4.4", options_first=True)
+    print("global arguments:")
+    print(args)
+    print("command arguments:")
 
-    argv = [args['<command>']] + args['<args>']
-    if args['<command>'] == 'add':
+    argv = [args["<command>"]] + args["<args>"]
+    if args["<command>"] == "add":
         # In case subcommand is implemented as python module:
         import git_add
+
         print(docopt(git_add.__doc__, argv=argv))
-    elif args['<command>'] == 'branch':
+    elif args["<command>"] == "branch":
         # In case subcommand is a script in some other programming language:
-        exit(call(['python', 'git_branch.py'] + argv))
-    elif args['<command>'] in 'checkout clone commit push remote'.split():
+        exit(call(["python", "git_branch.py"] + argv))
+    elif args["<command>"] in "checkout clone commit push remote".split():
         # For the rest we'll just keep DRY:
-        exit(call(['python', 'git_%s.py' % args['<command>']] + argv))
-    elif args['<command>'] in ['help', None]:
-        exit(call(['python', 'git.py', '--help']))
+        exit(call(["python", "git_%s.py" % args["<command>"]] + argv))
+    elif args["<command>"] in ["help", None]:
+        exit(call(["python", "git.py", "--help"]))
     else:
-        exit("%r is not a git.py command. See 'git help'." % args['<command>'])
+        exit("%r is not a git.py command. See 'git help'." % args["<command>"])
