@@ -818,9 +818,8 @@ def docopt(
 
     """
     argv = sys.argv[1:] if argv is None else argv
-    maybe_frame = inspect.currentframe()
-    if maybe_frame:
-        parent_frame = doc_parent_frame = maybe_frame.f_back
+    frame = inspect.currentframe()
+    doc_parent_frame = frame.f_back
     if not docstring:  # go look for one, if none exists, raise Exception
         while not docstring and doc_parent_frame:
             docstring = doc_parent_frame.f_locals.get("__doc__")
@@ -830,21 +829,6 @@ def docopt(
             raise DocoptLanguageError(
                 "Either __doc__ must be defined in the scope of a parent or passed as the first argument."
             )
-    output_value_assigned = False
-    if more_magic and parent_frame:
-        import dis
-
-        instrs = dis.get_instructions(parent_frame.f_code)
-        for instr in instrs:
-            if instr.offset == parent_frame.f_lasti:
-                break
-        assert instr.opname.startswith("CALL_")
-        MAYBE_STORE = next(instrs)
-        if MAYBE_STORE and (
-            MAYBE_STORE.opname.startswith("STORE")
-            or MAYBE_STORE.opname.startswith("RETURN")
-        ):
-            output_value_assigned = True
     usage_sections = parse_section("usage:", docstring)
     if len(usage_sections) == 0:
         raise DocoptLanguageError(
@@ -876,10 +860,6 @@ def docopt(
         output_obj = ParsedOptions(
             (a.name, a.value) for a in (pattern.flat() + collected)
         )
-        target_parent_frame = parent_frame or magic_parent_frame or doc_parent_frame
-        if more_magic and target_parent_frame and not output_value_assigned:
-            if not target_parent_frame.f_globals.get("arguments"):
-                target_parent_frame.f_globals["arguments"] = output_obj
         return output_obj
     if left:
         raise DocoptExit(f"Warning: found unmatched (duplicate?) arguments {left}")
