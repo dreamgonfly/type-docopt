@@ -53,8 +53,8 @@ class DocoptTestItem(pytest.Item):
 
     def runtest(self):
         try:
-            result = docopt.docopt(self.doc, argv=self.argv)
-        except docopt.DocoptExit:
+            result = type_docopt.docopt(self.doc, argv=self.argv)
+        except type_docopt.DocoptExit:
             result = "user-error"
 
         if self.expect != result:
