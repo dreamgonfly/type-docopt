@@ -399,7 +399,7 @@ class Tokens(list):
 
 
 def parse_longer(
-    tokens: Tokens, options: List[Option], argv: bool = False, more_magic: bool = False
+    tokens: Tokens, options: List[Option], argv: bool = False
 ) -> List[Pattern]:
     """longer ::= '--' chars [ ( ' ' | '=' ) chars ] ;"""
     current_token = tokens.move()
@@ -429,16 +429,6 @@ def parse_longer(
             for o in options
             if o.longer and longer in o.longer and o.longer.startswith(longer)
         ]
-    # try advanced matching
-    if more_magic and not similar:
-        corrected = [
-            (longer, o)
-            for o in options
-            if o.longer and levenshtein_norm(longer, o.longer) < 0.25
-        ]
-        if corrected:
-            print(f"NB: Corrected {corrected[0][0]} to {corrected[0][1].longer}")
-        similar = [correct for (original, correct) in corrected]
     if len(similar) > 1:
         raise tokens.error(
             f"{longer} is not a unique prefix: {similar}?"
@@ -466,9 +456,7 @@ def parse_longer(
     return [o]
 
 
-def parse_shorts(
-    tokens: Tokens, options: List[Option], more_magic: bool = False
-) -> List[Pattern]:
+def parse_shorts(tokens: Tokens, options: List[Option]) -> List[Pattern]:
     """shorts ::= '-' ( chars )* [ [ ' ' ] chars ] ;"""
     token = tokens.move()
     if token is None or not token.startswith("-") or token.startswith("--"):
@@ -482,9 +470,6 @@ def parse_shorts(
         transformations: Dict[Union[None, str], Callable[[str], str]] = {
             None: lambda x: x
         }
-        if more_magic:
-            transformations["lowercase"] = lambda x: x.lower()
-            transformations["uppercase"] = lambda x: x.upper()
         # try identity, lowercase, uppercase, iff such resolves uniquely (ie if upper and lowercase are not both defined)
         similar: List[Option] = []
         de_abbreviated = False
@@ -508,34 +493,6 @@ def parse_shorts(
                         print(
                             f"NB: Corrected {short} to {similar[0].short} via {transform_name}"
                         )
-                    break
-            # if transformations do not resolve, try abbreviations of 'longer' forms iff such resolves uniquely (ie if no two longer forms begin with the same letter)
-            if not similar and more_magic:
-                abbreviated = [
-                    transform(o.longer[1:3])
-                    for o in options
-                    if o.longer and not o.short
-                ] + [transform(o.short) for o in options if o.short and not o.longer]
-                nonredundantly_abbreviated_options = [
-                    o for o in options if o.longer and abbreviated.count(short) == 1
-                ]
-                no_collisions = len(nonredundantly_abbreviated_options) == len(
-                    abbreviated
-                )
-                if no_collisions:
-                    for o in options:
-                        if (
-                            not o.short
-                            and o.longer
-                            and transform(short) == transform(o.longer[1:3])
-                        ):
-                            similar = [o]
-                            print(
-                                f"NB: Corrected {short} to {similar[0].longer} via abbreviation (case change: {transform_name})"
-                            )
-                            break
-                if len(similar):
-                    de_abbreviated = True
                     break
         if len(similar) > 1:
             raise tokens.error(
@@ -643,10 +600,7 @@ def parse_atom(tokens: Tokens, options: List[Option]) -> List[Pattern]:
 
 
 def parse_argv(
-    tokens: Tokens,
-    options: List[Option],
-    options_first: bool = False,
-    more_magic: bool = False,
+    tokens: Tokens, options: List[Option], options_first: bool = False,
 ) -> List[Pattern]:
     """Parse command-line argument vector.
 
@@ -670,13 +624,13 @@ def parse_argv(
         if current_token == "--":
             return parsed + [Argument(None, v) for v in tokens]
         elif current_token.startswith("--"):
-            parsed += parse_longer(tokens, options, argv=True, more_magic=more_magic)
+            parsed += parse_longer(tokens, options, argv=True)
         elif (
             current_token.startswith("-")
             and current_token != "-"
             and not isanumber(current_token)
         ):
-            parsed += parse_shorts(tokens, options, more_magic=more_magic)
+            parsed += parse_shorts(tokens, options)
         elif options_first:
             return parsed + [Argument(None, v) for v in tokens]
         else:
@@ -755,7 +709,6 @@ def docopt(
     default_help: bool = True,
     version: Any = None,
     options_first: bool = False,
-    more_magic: bool = False,
 ) -> ParsedOptions:
     """Parse `argv` based on command-line interface described in `doc`.
 
@@ -780,11 +733,7 @@ def docopt(
     options_first : bool (default: False)
         Set to True to require options precede positional arguments,
         i.e. to forbid options and positional arguments intermix.
-    more_magic : bool (default: False)
-        Try to be extra-helpful; pull results into globals() of caller as 'arguments',
-        offer advanced pattern-matching and spellcheck.
-        Also activates if `docopt` aliased to a name containing 'magic'.
-
+        
     Returns
     -------
     arguments: dict-like
@@ -844,16 +793,22 @@ def docopt(
         )
     DocoptExit.usage = usage_sections[0]
     options = parse_defaults(docstring)
+    print("options", options)
     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
+    print("pattern", pattern)
+    # pattern: Required(Either(Required(Command('ship', False), Command('new', False), OneOrMore(Argument('<name>', None))), Required(Command('ship', False), Argument('<name>', None), Command('move', False), Argument('<x>', None), Argument('<y>', None), NotRequired(Option(None, '--speed', 1, '10'))), Required(Command('ship', False), Command('shoot', False), Argument('<x>', None), Argument('<y>', None)), Required(Command('mine', False), Required(Either(Command('set', False), Command('remove', False))), Argument('<x>', None), Argument('<y>', None), NotRequired(Either(Option(None, '--moored', 0, False), Option(None, '--drifting', 0, False)))), Required(Either(Option('-h', '--help', 0, False), Option('-h', '--help', 0, False))), Required(Option(None, '--version', 0, False))))
     pattern_options = set(pattern.flat(Option))
+    # pattern_options: {Option(None, '--speed', 1, '10'), Option(None, '--drifting', 0, False), Option('-h', '--help', 0, False), Option(None, '--moored', 0, False), Option(None, '--version', 0, False)}
+    print("pattern_options", pattern_options)
+    print("pattern.flat(OptionsShortcut)", pattern.flat(OptionsShortcut))
     for options_shortcut in pattern.flat(OptionsShortcut):
         doc_options = parse_defaults(docstring)
+        print("options_shortcut.children", options_shortcut.children)
         options_shortcut.children = [
             opt for opt in doc_options if opt not in pattern_options
         ]
-    parsed_arg_vector = parse_argv(
-        Tokens(argv), list(options), options_first, more_magic
-    )
+        print("options_shortcut.children", options_shortcut.children)
+    parsed_arg_vector = parse_argv(Tokens(argv), list(options), options_first)
     extras(default_help, version, parsed_arg_vector, docstring)
     matched, left, collected = pattern.fix().match(parsed_arg_vector)
     if matched and left == []:
