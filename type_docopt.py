@@ -734,7 +734,7 @@ class ParsedOptions(dict):
         }.get(name)
 
 
-def convert_type(o, types=None):
+def convert_type(o: Pattern, types: Optional[Dict[str, Type]]):
     if not isinstance(o, Option):
         return o.value
 
