@@ -25,6 +25,20 @@ if __name__ == '__main__':
     print(arguments)
 ```
 
+```bash
+$ python example.py transport 1.2.3.4 80 --timeout 0.5 --protocol tcp
+
+{'--baud': 9600,
+ '--help': False,
+ '--protocol': 'tcp',
+ '--timeout': 0.5,
+ '--version': False,
+ '<host>': '1.2.3.4',
+ '<port>': '80',
+ 'serial': False,
+ 'transport': True}
+```
+
 Beat that! The option parser is generated based on the docstring above
 that is passed to `docopt` function. `docopt` parses the usage pattern
 (`"Usage: ..."`) and option descriptions (lines starting with dash
@@ -75,7 +89,8 @@ docopt(docstring=None, argv=None, help_message=True, version=None, options_first
 
 -   `docstring` could be a module docstring (`__doc__`) or some other string
     that contains a **help message** that will be parsed to create the
-    option parser. The simple rules of how to write such a help message
+    option parser. If it is None (not provided) - the calling scope will be interrogated 
+    for a docstring. The simple rules of how to write such a help message
     are given in next sections. Here is a quick example of such a
     string:
 
@@ -90,7 +105,6 @@ docopt(docstring=None, argv=None, help_message=True, version=None, options_first
 
 """
 ```
-    If it is None (not provided) - the calling scope will be interrogated for a docstring.
 
 -   `argv` is an optional argument vector; by default `docopt` uses the
     argument vector passed to your program (`sys.argv[1:]`).
