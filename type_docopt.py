@@ -620,7 +620,8 @@ class ParsedOptions(dict):
         return self.get(name) or {
             name: self.get(k)
             for k in self.keys()
-            if name in [k.lstrip("-"), k.lstrip("<").rstrip(">")]
+            if name
+            in [k.lstrip("-").replace("-", "_"), k.lstrip("<").rstrip(">").replace("-", "_")]
         }.get(name)
 
 
