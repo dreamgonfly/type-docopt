@@ -810,13 +810,14 @@ def docopt(
     ...
     ... Options:
     ...     -h, --help  Show this screen and exit.
-    ...     --baud=<n>  Baudrate [default: 9600]
+    ...     --baud=<n>  Baudrate [default: 9600] [type: int]
+    ...     --timeout=<seconds>  Timeout seconds [type: float]
     ... '''
     >>> argv = ['tcp', '127.0.0.1', '80', '--timeout', '30']
     >>> docopt(doc, argv)
-    {'--baud': '9600',
+    {'--baud': 9600,
      '--help': False,
-     '--timeout': '30',
+     '--timeout': 30.0,
      '--version': False,
      '<host>': '127.0.0.1',
      '<port>': '80',
