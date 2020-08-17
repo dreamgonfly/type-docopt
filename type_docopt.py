@@ -762,14 +762,14 @@ def docopt(
     >>> from type_docopt import docopt
     >>> doc = '''
     ... Usage:
-    ...     my_program tcp <host> <port> [--timeout=<seconds>]
-    ...     my_program serial <port> [--baud=<n>] [--timeout=<seconds>]
-    ...     my_program (-h | --help | --version)
+    ...   my_program tcp <host> <port> [--timeout=<seconds>]
+    ...   my_program serial <port> [--baud=<n>] [--timeout=<seconds>]
+    ...   my_program (-h | --help | --version)
     ...
     ... Options:
-    ...     -h, --help  Show this screen and exit.
-    ...     --baud=<n>  Baudrate [default: 9600] [type: int]
-    ...     --timeout=<seconds>  Timeout seconds [type: float]
+    ...   -h, --help  Show this screen and exit.
+    ...   --baud=<n>  Baudrate [default: 9600] [type: int]
+    ...   --timeout=<seconds>  Timeout seconds [type: float]
     ... '''
     >>> argv = ['tcp', '127.0.0.1', '80', '--timeout', '30']
     >>> docopt(doc, argv)
