@@ -955,3 +955,55 @@ other options:
 """
 $ prog --baz --egg
 {"--foo": false, "--baz": true, "--bar": false, "--egg": true, "--spam": false}
+
+#
+# Type syntax
+#
+
+r"""Usage: prog [options]
+
+Options:
+ --bar <bar>  Lorem ipsum dolor sit amet [type: int]
+ --foo <bar>  Lorem ipsum dolor sit amet [type: float]
+
+"""
+$ prog --bar 1
+{"--bar": 1, "--foo": null}
+
+$ prog --foo 0.5
+{"--bar": null, "--foo": 0.5}
+
+#
+# Type with default syntax
+#
+
+r"""Usage: prog [options]
+
+Options:
+ --bar <bar>  Lorem ipsum dolor sit amet [type: int] [default: 1]
+
+"""
+$ prog
+{"--bar": 1}
+
+#
+# Choices syntax
+#
+
+r"""Usage: prog [options]
+
+Options:
+ --bar <bar>  Lorem ipsum dolor sit amet [choices: consectetur adipiscing elit]
+
+"""
+$ prog --bar consectetur
+{"--bar": "consectetur"}
+
+r"""Usage: prog --bar <bar>
+
+Options:
+ --bar <bar>  Lorem ipsum dolor sit amet [choices: 1 2 3] [type: int]
+
+"""
+$ prog --bar 1
+{"--bar": 1}
