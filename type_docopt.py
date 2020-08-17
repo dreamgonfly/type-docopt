@@ -635,7 +635,7 @@ def parse_argv(
     return parsed
 
 
-def parse_defaults(docstring: str) -> List[Option]:
+def parse_description(docstring: str) -> List[Option]:
     defaults = []
     for s in parse_section("options:", docstring):
         options_literal, _, s = s.partition(":")
@@ -809,11 +809,11 @@ def docopt(
             "Use a blank line between each section.."
         )
     DocoptExit.usage = usage_sections[0]
-    options = parse_defaults(docstring)
+    options = parse_description(docstring)
     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
     pattern_options = set(pattern.flat(Option))
     for options_shortcut in pattern.flat(OptionsShortcut):
-        doc_options = parse_defaults(docstring)
+        doc_options = parse_description(docstring)
         options_shortcut.children = [opt for opt in doc_options if opt not in pattern_options]
     parsed_arg_vector = parse_argv(Tokens(argv), list(options), options_first)
     extras(help_message, version, parsed_arg_vector, docstring)

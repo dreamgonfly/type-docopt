@@ -14,7 +14,7 @@ from type_docopt import (
     parse_argv,
     parse_pattern,
     parse_section,
-    parse_defaults,
+    parse_description,
     formal_usage,
     Tokens,
     transform,
@@ -674,4 +674,4 @@ def test_parse_section():
 
 def test_issue_126_defaults_not_parsed_correctly_when_tabs():
     section = "Options:\n\t--foo=<arg>  [default: bar]"
-    assert parse_defaults(section) == [Option(None, "--foo", 1, "bar")]
+    assert parse_description(section) == [Option(None, "--foo", 1, "bar")]
