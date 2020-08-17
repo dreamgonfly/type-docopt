@@ -28,9 +28,9 @@ def test_pattern_flat():
         Option("-a"),
         Argument("M"),
     ]
-    assert Required(
-        NotRequired(OptionsShortcut()), NotRequired(Option("-a", None))
-    ).flat(OptionsShortcut) == [OptionsShortcut()]
+    assert Required(NotRequired(OptionsShortcut()), NotRequired(Option("-a", None))).flat(
+        OptionsShortcut
+    ) == [OptionsShortcut()]
 
 
 def test_option():
@@ -51,21 +51,13 @@ def test_option():
 
     assert Option.parse("    -h") == Option("-h", None)
 
-    assert Option.parse("-h TOPIC  Descripton... [default: 2]") == Option(
-        "-h", None, 1, "2"
-    )
+    assert Option.parse("-h TOPIC  Descripton... [default: 2]") == Option("-h", None, 1, "2")
     assert Option.parse("-h TOPIC  Descripton... [default: topic-1]") == Option(
         "-h", None, 1, "topic-1"
     )
-    assert Option.parse("--help=TOPIC  ... [default: 3.14]") == Option(
-        None, "--help", 1, "3.14"
-    )
-    assert Option.parse("-h, --help=DIR  ... [default: ./]") == Option(
-        "-h", "--help", 1, "./"
-    )
-    assert Option.parse("-h TOPIC  Descripton... [dEfAuLt: 2]") == Option(
-        "-h", None, 1, "2"
-    )
+    assert Option.parse("--help=TOPIC  ... [default: 3.14]") == Option(None, "--help", 1, "3.14")
+    assert Option.parse("-h, --help=DIR  ... [default: ./]") == Option("-h", "--help", 1, "./")
+    assert Option.parse("-h TOPIC  Descripton... [dEfAuLt: 2]") == Option("-h", None, 1, "2")
 
 
 def test_option_name():
@@ -141,10 +133,7 @@ def test_parse_pattern():
         Required(
             Either(
                 Option("-h"),
-                Required(
-                    Option("-v", "--verbose"),
-                    NotRequired(Option("-f", "--file", 1, None)),
-                ),
+                Required(Option("-v", "--verbose"), NotRequired(Option("-f", "--file", 1, None)),),
             )
         )
     )
@@ -166,10 +155,7 @@ def test_parse_pattern():
                 Required(
                     Argument("N"),
                     NotRequired(
-                        Either(
-                            Argument("M"),
-                            Required(Either(Argument("K"), Argument("L"))),
-                        )
+                        Either(Argument("M"), Required(Either(Argument("K"), Argument("L"))),)
                     ),
                 ),
                 Required(Argument("O"), Argument("P")),
@@ -179,9 +165,7 @@ def test_parse_pattern():
     assert parse_pattern("[ -h ] [N]", options=o) == Required(
         NotRequired(Option("-h")), NotRequired(Argument("N"))
     )
-    assert parse_pattern("[options]", options=o) == Required(
-        NotRequired(OptionsShortcut())
-    )
+    assert parse_pattern("[options]", options=o) == Required(NotRequired(OptionsShortcut()))
     assert parse_pattern("[options] A", options=o) == Required(
         NotRequired(OptionsShortcut()), Argument("A")
     )
@@ -194,11 +178,7 @@ def test_parse_pattern():
 
 
 def test_option_match():
-    assert Option("-a").match([Option("-a", value=True)]) == (
-        True,
-        [],
-        [Option("-a", value=True)],
-    )
+    assert Option("-a").match([Option("-a", value=True)]) == (True, [], [Option("-a", value=True)],)
     assert Option("-a").match([Option("-x")]) == (False, [Option("-x")], [])
     assert Option("-a").match([Argument("N")]) == (False, [Argument("N")], [])
     assert Option("-a").match([Option("-x"), Option("-a"), Argument("N")]) == (
@@ -236,9 +216,11 @@ def test_command_match():
         [Option("-x"), Option("-a")],
         [Command("c", True)],
     )
-    assert Either(Command("add", False), Command("rm", False)).match(
-        [Argument(None, "rm")]
-    ) == (True, [], [Command("rm", True)])
+    assert Either(Command("add", False), Command("rm", False)).match([Argument(None, "rm")]) == (
+        True,
+        [],
+        [Command("rm", True)],
+    )
 
 
 def test_optional_match():
@@ -260,11 +242,7 @@ def test_optional_match():
         [Option("-x")],
         [],
     )
-    assert NotRequired(Argument("N")).match([Argument(None, 9)]) == (
-        True,
-        [],
-        [Argument("N", 9)],
-    )
+    assert NotRequired(Argument("N")).match([Argument(None, 9)]) == (True, [], [Argument("N", 9)],)
     assert NotRequired(Option("-a"), Option("-b")).match(
         [Option("-b"), Option("-x"), Option("-a")]
     ) == (True, [Option("-x")], [Option("-a"), Option("-b")])
@@ -282,35 +260,25 @@ def test_required_match():
 
 
 def test_either_match():
-    assert Either(Option("-a"), Option("-b")).match([Option("-a")]) == (
-        True,
-        [],
-        [Option("-a")],
-    )
+    assert Either(Option("-a"), Option("-b")).match([Option("-a")]) == (True, [], [Option("-a")],)
     assert Either(Option("-a"), Option("-b")).match([Option("-a"), Option("-b")]) == (
         True,
         [Option("-b")],
         [Option("-a")],
     )
-    assert Either(Option("-a"), Option("-b")).match([Option("-x")]) == (
-        False,
+    assert Either(Option("-a"), Option("-b")).match([Option("-x")]) == (False, [Option("-x")], [],)
+    assert Either(Option("-a"), Option("-b"), Option("-c")).match([Option("-x"), Option("-b")]) == (
+        True,
         [Option("-x")],
-        [],
+        [Option("-b")],
     )
-    assert Either(Option("-a"), Option("-b"), Option("-c")).match(
-        [Option("-x"), Option("-b")]
-    ) == (True, [Option("-x")], [Option("-b")])
     assert Either(Argument("M"), Required(Argument("N"), Argument("M"))).match(
         [Argument(None, 1), Argument(None, 2)]
     ) == (True, [], [Argument("N", 1), Argument("M", 2)],)
 
 
 def test_one_or_more_match():
-    assert OneOrMore(Argument("N")).match([Argument(None, 9)]) == (
-        True,
-        [],
-        [Argument("N", 9)],
-    )
+    assert OneOrMore(Argument("N")).match([Argument(None, 9)]) == (True, [], [Argument("N", 9)],)
     assert OneOrMore(Argument("N")).match([]) == (False, [], [])
     assert OneOrMore(Argument("N")).match([Option("-x")]) == (False, [Option("-x")], [])
     assert OneOrMore(Argument("N")).match([Argument(None, 9), Argument(None, 8)]) == (
@@ -318,12 +286,16 @@ def test_one_or_more_match():
         [],
         [Argument("N", 9), Argument("N", 8)],
     )
-    assert OneOrMore(Argument("N")).match(
-        [Argument(None, 9), Option("-x"), Argument(None, 8)]
-    ) == (True, [Option("-x")], [Argument("N", 9), Argument("N", 8)])
-    assert OneOrMore(Option("-a")).match(
-        [Option("-a"), Argument(None, 8), Option("-a")]
-    ) == (True, [Argument(None, 8)], [Option("-a"), Option("-a")])
+    assert OneOrMore(Argument("N")).match([Argument(None, 9), Option("-x"), Argument(None, 8)]) == (
+        True,
+        [Option("-x")],
+        [Argument("N", 9), Argument("N", 8)],
+    )
+    assert OneOrMore(Option("-a")).match([Option("-a"), Argument(None, 8), Option("-a")]) == (
+        True,
+        [Argument(None, 8)],
+        [Option("-a"), Option("-a")],
+    )
     assert OneOrMore(Option("-a")).match([Argument(None, 8), Option("-x")]) == (
         False,
         [Argument(None, 8), Option("-x")],
@@ -331,11 +303,7 @@ def test_one_or_more_match():
     )
     assert OneOrMore(Required(Option("-a"), Argument("N"))).match(
         [Option("-a"), Argument(None, 1), Option("-x"), Option("-a"), Argument(None, 2)]
-    ) == (
-        True,
-        [Option("-x")],
-        [Option("-a"), Argument("N", 1), Option("-a"), Argument("N", 2)],
-    )
+    ) == (True, [Option("-x")], [Option("-a"), Argument("N", 1), Option("-a"), Argument("N", 2)],)
     assert OneOrMore(NotRequired(Argument("N"))).match([Argument(None, 9)]) == (
         True,
         [],
@@ -360,9 +328,7 @@ def test_list_argument_match():
 
 def test_basic_pattern_matching():
     # ( -a N [ -x Z ] )
-    pattern = Required(
-        Option("-a"), Argument("N"), NotRequired(Option("-x"), Argument("Z"))
-    )
+    pattern = Required(Option("-a"), Argument("N"), NotRequired(Option("-x"), Argument("Z")))
     # -a N
     assert pattern.match([Option("-a"), Argument(None, 9)]) == (
         True,
@@ -370,9 +336,11 @@ def test_basic_pattern_matching():
         [Option("-a"), Argument("N", 9)],
     )
     # -a -x N Z
-    assert pattern.match(
-        [Option("-a"), Option("-x"), Argument(None, 9), Argument(None, 5)]
-    ) == (True, [], [Option("-a"), Argument("N", 9), Option("-x"), Argument("Z", 5)],)
+    assert pattern.match([Option("-a"), Option("-x"), Argument(None, 9), Argument(None, 5)]) == (
+        True,
+        [],
+        [Option("-a"), Argument("N", 9), Option("-x"), Argument("Z", 5)],
+    )
     # -x N Z  # BZZ!
     assert pattern.match([Option("-x"), Argument(None, 9), Argument(None, 5)]) == (
         False,
@@ -384,19 +352,15 @@ def test_basic_pattern_matching():
 def test_pattern_either():
     assert transform(Option("-a")) == Either(Required(Option("-a")))
     assert transform(Argument("A")) == Either(Required(Argument("A")))
-    assert transform(
-        Required(Either(Option("-a"), Option("-b")), Option("-c"))
-    ) == Either(
+    assert transform(Required(Either(Option("-a"), Option("-b")), Option("-c"))) == Either(
         Required(Option("-a"), Option("-c")), Required(Option("-b"), Option("-c"))
     )
-    assert transform(
-        NotRequired(Option("-a"), Either(Option("-b"), Option("-c")))
-    ) == Either(
+    assert transform(NotRequired(Option("-a"), Either(Option("-b"), Option("-c")))) == Either(
         Required(Option("-b"), Option("-a")), Required(Option("-c"), Option("-a"))
     )
-    assert transform(
-        Either(Option("-x"), Either(Option("-y"), Option("-z")))
-    ) == Either(Required(Option("-x")), Required(Option("-y")), Required(Option("-z")))
+    assert transform(Either(Option("-x"), Either(Option("-y"), Option("-z")))) == Either(
+        Required(Option("-x")), Required(Option("-y")), Required(Option("-z"))
+    )
     assert transform(OneOrMore(Argument("N"), Argument("M"))) == Either(
         Required(Argument("N"), Argument("M"), Argument("N"), Argument("M"))
     )
@@ -404,9 +368,7 @@ def test_pattern_either():
 
 def test_pattern_fix_repeating_arguments():
     assert Required(Option("-a")).fix_repeating_arguments() == Required(Option("-a"))
-    assert Required(Argument("N", None)).fix_repeating_arguments() == Required(
-        Argument("N", None)
-    )
+    assert Required(Argument("N", None)).fix_repeating_arguments() == Required(Argument("N", None))
     assert Required(Argument("N"), Argument("N")).fix_repeating_arguments() == Required(
         Argument("N", []), Argument("N", [])
     )
@@ -445,8 +407,7 @@ def test_long_options_error_handling():
         docopt("Usage: prog", "--non-existent")
     with raises(DocoptExit):
         docopt(
-            "Usage: prog [--version --verbose]\n" "Options: --version\n --verbose",
-            "--ver",
+            "Usage: prog [--version --verbose]\n" "Options: --version\n --verbose", "--ver",
         )
     with raises(DocoptLanguageError):
         docopt("Usage: prog --long\nOptions: --long ARG")
@@ -640,9 +601,10 @@ def test_options_first():
         "--opt": True,
         "<args>": ["this", "that"],
     }
-    assert docopt(
-        "usage: prog [--opt] [<args>...]", "this that --opt", options_first=True
-    ) == {"--opt": False, "<args>": ["this", "that", "--opt"]}
+    assert docopt("usage: prog [--opt] [<args>...]", "this that --opt", options_first=True) == {
+        "--opt": False,
+        "<args>": ["this", "that", "--opt"],
+    }
 
 
 def test_issue_68_options_shortcut_does_not_include_options_in_usage_pattern():

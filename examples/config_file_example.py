@@ -47,7 +47,9 @@ def load_ini_config():
     # ConfigParsers sets keys which have no value
     # (like `--force` above) to `None`. Thus we
     # need to substitute all `None` with `True`.
-    return dict((key, True if value is None else value) for key, value in config.items("default-arguments"))
+    return dict(
+        (key, True if value is None else value) for key, value in config.items("default-arguments")
+    )
 
 
 def merge(dict_1, dict_2):

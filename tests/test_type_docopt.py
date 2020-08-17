@@ -45,8 +45,7 @@ def test_custom_types():
 
 def test_choices():
     assert docopt(
-        "Usage: prog [--foo=<foo>]\n"
-        "Options: -f --foo=<foo>  Lorem ipsum dolor [choices: A B C]",
+        "Usage: prog [--foo=<foo>]\n" "Options: -f --foo=<foo>  Lorem ipsum dolor [choices: A B C]",
         "--foo=A",
     ) == {"--foo": "A"}
 
