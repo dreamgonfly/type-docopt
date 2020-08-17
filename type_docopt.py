@@ -675,9 +675,9 @@ def formal_usage(section: str) -> str:
 
 
 def extras(
-    default_help: bool, version: None, options: List[Pattern], docstring: str
+    help_message: bool, version: None, options: List[Pattern], docstring: str
 ) -> None:
-    if default_help and any(
+    if help_message and any(
         (o.name in ("-h", "--help")) and o.value
         for o in options
         if isinstance(o, Option)
@@ -706,7 +706,7 @@ class ParsedOptions(dict):
 def docopt(
     docstring: Optional[str] = None,
     argv: Optional[Union[List[str], str]] = None,
-    default_help: bool = True,
+    help_message: bool = True,
     version: Any = None,
     options_first: bool = False,
 ) -> ParsedOptions:
@@ -724,7 +724,7 @@ def docopt(
     argv : list of str, optional
         Argument vector to be parsed. sys.argv[1:] is used if not
         provided.
-    default_help : bool (default: True)
+    help_message : bool (default: True)
         Set to False to disable automatic help on -h or --help
         options.
     version : any object
@@ -733,7 +733,7 @@ def docopt(
     options_first : bool (default: False)
         Set to True to require options precede positional arguments,
         i.e. to forbid options and positional arguments intermix.
-        
+
     Returns
     -------
     arguments: dict-like
@@ -809,7 +809,7 @@ def docopt(
         ]
         print("options_shortcut.children", options_shortcut.children)
     parsed_arg_vector = parse_argv(Tokens(argv), list(options), options_first)
-    extras(default_help, version, parsed_arg_vector, docstring)
+    extras(help_message, version, parsed_arg_vector, docstring)
     matched, left, collected = pattern.fix().match(parsed_arg_vector)
     if matched and left == []:
         output_obj = ParsedOptions(
