@@ -11,7 +11,7 @@ Usage:
 Options:
   -h --help     Show this screen.
   --version     Show version.
-  --speed=<kn>  Speed in knots [default: 10].
+  --speed=<kn>  Speed in knots [default: 10] [type: int].
   --moored      Moored (anchored) mine.
   --drifting    Drifting mine.
 
@@ -19,6 +19,6 @@ Options:
 from type_docopt import docopt
 
 
-if __name__ == '__main__':
-    arguments = docopt(__doc__, version='Naval Fate 2.0')
+if __name__ == "__main__":
+    arguments = docopt(__doc__, version="Naval Fate 2.0")
     print(arguments)

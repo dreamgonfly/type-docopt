@@ -1,2 +1,2 @@
-include README.rst LICENSE-MIT
+include LICENSE
 recursive-include examples *.py
