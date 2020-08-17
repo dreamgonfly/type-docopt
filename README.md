@@ -114,8 +114,8 @@ docopt(docstring=None, argv=None, help_message=True, version=None, options_first
     programs.
 
 -   `types`, by default `None`, is how you can provide custom types to
-    type-docopt. If given as a dictionary with type names as keys and 
-    type constructors as values, type-docopt converts argument values
+    **type-docopt**. If given as a dictionary with type names as keys and 
+    type constructors as values, **type-docopt** converts argument values
     to given type according to the type information of option description.
     Basic types (int, float, complex, str) are readily available.
 
@@ -319,14 +319,14 @@ The rules are as follows:
 
 -   If you would like to set type information for an option with an argument,
     put it into the option-description, in form `[type: <my-type-name>]`.
-    You can use default value with type description:
+    You can also use default value with type description:
 
         --coefficient=K  The K coefficient [default: 2.95] [type: float]
         --count=COUNT    Count number [type: int]
     
--   You can provide custom types to `type-docopt`. Make a dictionary with
-    type names as keys and constructors as values then give it to `type-docopt`.
-    You can also use default value with type description:
+-   You can provide custom types to **type-docopt**. Make a dictionary with
+    type names as keys and constructors as values then give it to **type-docopt**.
+    Below is how you can convert file path to `Path` object.
 
     ```python
     """Usage: my_program.py --output=FILE
@@ -344,7 +344,7 @@ The rules are as follows:
 
 -   If you want to specify allowable values for the argument, you can put the information
     into the option-description, in form `[choices: <1st-choice> <2nd-choice> <3rd-choice>]`.
-    Choices are deliminated by space. You can also use type and default value with choices:
+    Choices are deliminated by whitespace. You can also use type and default value with choices:
 
         --protocol=PROTOCOL  Protocol name [choices: tcp udp] [default: tcp]
         --repeat=N           Number [choices: 1 2 3] [type: int]
