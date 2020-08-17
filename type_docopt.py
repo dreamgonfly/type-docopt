@@ -10,7 +10,6 @@ import inspect
 from typing import Any, List, Optional, Tuple, Type, Union, Dict, Callable
 
 __all__ = ["docopt"]
-__version__ = "0.8.0"
 
 BASE_TYPE_MAP = {
     "int": int,
