@@ -743,14 +743,16 @@ def convert_type(o, types=None):
         return o.value
 
     if o.choices is not None:
-        assert o.value in o.choices, f"{o.value} is not in {o.choices}"
+        if o.value not in o.choices:
+            raise ValueError(f"{o.value} is not in {o.choices}.")
 
     if o.value_type is not None:
         if types is not None:
             type_map = dict(**BASE_TYPE_MAP, **types)
         else:
             type_map = BASE_TYPE_MAP
-        assert o.value_type in type_map
+        if o.value_type not in type_map:
+            raise ValueError(f"{o.value_type} type is not provided.")
 
         type_ = type_map[o.value_type]
         o.value = type_(o.value)
