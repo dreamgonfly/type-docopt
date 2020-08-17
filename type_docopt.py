@@ -12,6 +12,13 @@ from typing import Any, List, Optional, Tuple, Type, Union, Dict, Callable
 __all__ = ["docopt"]
 __version__ = "0.8.0"
 
+BASE_TYPE_MAP = {
+    "int": int,
+    "float": float,
+    "complex": complex,
+    "str": str,
+}
+
 
 def levenshtein_norm(source: str, target: str) -> float:
     """Calculates the normalized Levenshtein distance between two string
@@ -274,10 +281,14 @@ class Option(LeafPattern):
         longer: Optional[str] = None,
         argcount: int = 0,
         value: Union[List[str], str, int, None] = False,
+        value_type: Optional[str] = None,
+        choices: Optional[List[str]] = None,
     ) -> None:
         assert argcount in (0, 1)
         self.short, self.longer, self.argcount = short, longer, argcount
         self.value = None if value is False and argcount else value
+        self.value_type = value_type
+        self.choices = choices
 
     @classmethod
     def parse(class_, option_description: str) -> "Option":
@@ -292,9 +303,21 @@ class Option(LeafPattern):
             else:
                 argcount = 1
         if argcount:
-            matched = re.findall(r"\[default: (.*)\]", description, flags=re.I)
+            matched = re.findall(r"\[default: (.*?)\]", description, flags=re.I)
             value = matched[0] if matched else None
-        return class_(short, longer, argcount, value)
+
+        type_matched = re.findall(r"\[type: (.*?)\]", description, flags=re.I)
+        value_type = type_matched[0] if type_matched else None
+        print("value_type", value_type)
+
+        choices_matched = re.findall(r"\[choices: (.*?)\]", description, flags=re.I)
+        if choices_matched:
+            choices_value = choices_matched[0]
+            choices = [choice.strip() for choice in choices_value.split(" ")]
+        else:
+            choices = None
+
+        return class_(short, longer, argcount, value, value_type, choices)
 
     def single_match(self, left: List[LeafPattern]) -> TSingleMatch:
         for n, pattern in enumerate(left):
@@ -307,11 +330,13 @@ class Option(LeafPattern):
         return self.longer or self.short
 
     def __repr__(self) -> str:
-        return "Option(%r, %r, %r, %r)" % (
+        return "Option(%r, %r, %r, %r, %r, %r)" % (
             self.short,
             self.longer,
             self.argcount,
             self.value,
+            self.value_type,
+            self.choices,
         )
 
 
@@ -441,7 +466,12 @@ def parse_longer(
             o = Option(None, longer, argcount, value if argcount else True)
     else:
         o = Option(
-            similar[0].short, similar[0].longer, similar[0].argcount, similar[0].value
+            similar[0].short,
+            similar[0].longer,
+            similar[0].argcount,
+            similar[0].value,
+            similar[0].value_type,
+            similar[0].choices,
         )
         if o.argcount == 0:
             if value is not None:
@@ -513,6 +543,8 @@ def parse_shorts(tokens: Tokens, options: List[Option]) -> List[Pattern]:
                 similar[0].longer,
                 similar[0].argcount,
                 similar[0].value,
+                similar[0].value_type,
+                similar[0].choices,
             )
             value = None
             current_token = tokens.current()
@@ -703,12 +735,36 @@ class ParsedOptions(dict):
         }.get(name)
 
 
+def convert_type(o, types=None):
+    if not isinstance(o, Option):
+        return o.value
+
+    if o.value is None:
+        return o.value
+
+    if o.choices is not None:
+        assert o.value in o.choices, f"{o.value} is not in {o.choices}"
+
+    if o.value_type is not None:
+        if types is not None:
+            type_map = dict(**BASE_TYPE_MAP, **types)
+        else:
+            type_map = BASE_TYPE_MAP
+        assert o.value_type in type_map
+
+        type_ = type_map[o.value_type]
+        o.value = type_(o.value)
+
+    return o.value
+
+
 def docopt(
     docstring: Optional[str] = None,
     argv: Optional[Union[List[str], str]] = None,
     help_message: bool = True,
     version: Any = None,
     options_first: bool = False,
+    types: Dict[str, Type] = None,
 ) -> ParsedOptions:
     """Parse `argv` based on command-line interface described in `doc`.
 
@@ -793,27 +849,19 @@ def docopt(
         )
     DocoptExit.usage = usage_sections[0]
     options = parse_defaults(docstring)
-    print("options", options)
     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
-    print("pattern", pattern)
-    # pattern: Required(Either(Required(Command('ship', False), Command('new', False), OneOrMore(Argument('<name>', None))), Required(Command('ship', False), Argument('<name>', None), Command('move', False), Argument('<x>', None), Argument('<y>', None), NotRequired(Option(None, '--speed', 1, '10'))), Required(Command('ship', False), Command('shoot', False), Argument('<x>', None), Argument('<y>', None)), Required(Command('mine', False), Required(Either(Command('set', False), Command('remove', False))), Argument('<x>', None), Argument('<y>', None), NotRequired(Either(Option(None, '--moored', 0, False), Option(None, '--drifting', 0, False)))), Required(Either(Option('-h', '--help', 0, False), Option('-h', '--help', 0, False))), Required(Option(None, '--version', 0, False))))
     pattern_options = set(pattern.flat(Option))
-    # pattern_options: {Option(None, '--speed', 1, '10'), Option(None, '--drifting', 0, False), Option('-h', '--help', 0, False), Option(None, '--moored', 0, False), Option(None, '--version', 0, False)}
-    print("pattern_options", pattern_options)
-    print("pattern.flat(OptionsShortcut)", pattern.flat(OptionsShortcut))
     for options_shortcut in pattern.flat(OptionsShortcut):
         doc_options = parse_defaults(docstring)
-        print("options_shortcut.children", options_shortcut.children)
         options_shortcut.children = [
             opt for opt in doc_options if opt not in pattern_options
         ]
-        print("options_shortcut.children", options_shortcut.children)
     parsed_arg_vector = parse_argv(Tokens(argv), list(options), options_first)
     extras(help_message, version, parsed_arg_vector, docstring)
     matched, left, collected = pattern.fix().match(parsed_arg_vector)
     if matched and left == []:
         output_obj = ParsedOptions(
-            (a.name, a.value) for a in (pattern.flat() + collected)
+            (a.name, convert_type(a, types)) for a in (pattern.flat() + collected)
         )
         return output_obj
     if left:
