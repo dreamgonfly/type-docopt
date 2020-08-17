@@ -1,7 +1,6 @@
 import sys
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
-from pathlib import Path
 
 __version__ = "0.8.0"
 
