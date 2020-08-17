@@ -11,7 +11,7 @@ from typing import Any, List, Optional, Tuple, Type, Union, Dict, Callable
 
 __all__ = ["docopt"]
 
-BASE_TYPE_MAP = {
+BASIC_TYPE_MAP = {
     "int": int,
     "float": float,
     "complex": complex,
@@ -274,13 +274,13 @@ class Option(LeafPattern):
         longer: Optional[str] = None,
         argcount: int = 0,
         value: Union[List[str], str, int, None] = False,
-        value_type: Optional[str] = None,
+        type_name: Optional[str] = None,
         choices: Optional[List[str]] = None,
     ) -> None:
         assert argcount in (0, 1)
         self.short, self.longer, self.argcount = short, longer, argcount
         self.value = None if value is False and argcount else value
-        self.value_type = value_type
+        self.type_name = type_name
         self.choices = choices
 
     @classmethod
@@ -300,8 +300,7 @@ class Option(LeafPattern):
             value = matched[0] if matched else None
 
         type_matched = re.findall(r"\[type: (.*?)\]", description, flags=re.I)
-        value_type = type_matched[0] if type_matched else None
-        print("value_type", value_type)
+        type_name = type_matched[0] if type_matched else None
 
         choices_matched = re.findall(r"\[choices: (.*?)\]", description, flags=re.I)
         if choices_matched:
@@ -310,7 +309,7 @@ class Option(LeafPattern):
         else:
             choices = None
 
-        return class_(short, longer, argcount, value, value_type, choices)
+        return class_(short, longer, argcount, value, type_name, choices)
 
     def single_match(self, left: List[LeafPattern]) -> TSingleMatch:
         for n, pattern in enumerate(left):
@@ -328,7 +327,7 @@ class Option(LeafPattern):
             self.longer,
             self.argcount,
             self.value,
-            self.value_type,
+            self.type_name,
             self.choices,
         )
 
@@ -451,7 +450,7 @@ def parse_longer(tokens: Tokens, options: List[Option], argv: bool = False) -> L
             similar[0].longer,
             similar[0].argcount,
             similar[0].value,
-            similar[0].value_type,
+            similar[0].type_name,
             similar[0].choices,
         )
         if o.argcount == 0:
@@ -510,7 +509,7 @@ def parse_shorts(tokens: Tokens, options: List[Option]) -> List[Pattern]:
                 similar[0].longer,
                 similar[0].argcount,
                 similar[0].value,
-                similar[0].value_type,
+                similar[0].type_name,
                 similar[0].choices,
             )
             value = None
@@ -699,18 +698,18 @@ def convert_type(o: Pattern, types: Optional[Dict[str, Type]]):
         return o.value
 
     if o.choices is not None:
-        if o.value not in o.choices:
+        if o.value.lower() not in [choice.lower() for choice in o.choices]:
             raise ValueError(f"{o.value} is not in {o.choices}.")
 
-    if o.value_type is not None:
+    if o.type_name is not None:
         if types is not None:
-            type_map = dict(**BASE_TYPE_MAP, **types)
+            type_map = dict(**BASIC_TYPE_MAP, **types)
         else:
-            type_map = BASE_TYPE_MAP
-        if o.value_type not in type_map:
-            raise ValueError(f"{o.value_type} type is not provided.")
+            type_map = BASIC_TYPE_MAP
+        if o.type_name not in type_map:
+            raise ValueError(f"{o.type_name} type is not provided.")
 
-        type_ = type_map[o.value_type]
+        type_ = type_map[o.type_name]
         o.value = type_(o.value)
 
     return o.value
