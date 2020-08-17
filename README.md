@@ -1,95 +1,27 @@
-# `docopt-ng` creates *magic* command-line interfaces
+# Type-Docopt: Pythonic argument parser, with type description
 
-[![image](https://travis-ci.org/bazaar-projects/docopt-ng.svg?branch=master)](https://travis-ci.org/bazaar-projects/docopt-ng)
+[![image](https://img.shields.io/pypi/v/type-docopt.svg)](https://pypi.python.org/pypi/type-docopt)
 
-[![codecov](https://codecov.io/gh/bazaar-projects/docopt-ng/branch/master/graph/badge.svg)](https://codecov.io/gh/bazaar-projects/docopt-ng)
+**type-docopt** helps you create beautiful command-line interfaces with type conversion:
 
-[![image](https://img.shields.io/pypi/v/docopt-ng.svg)](https://pypi.python.org/pypi/docopt-ng)
-
-## CHANGELOG
-
-#### New in version 0.7.2:
-
-> -   Complete MyPy typehints - ZERO errors.
->     Required refactoring class implementations, adding typing stubs, but not changing tests. :)
-> -   100% code coverage. Required the addition of a few tests.
->     Removed unused codepaths. Tagged typing stubs `pragma: no cover` as they are definitionally exercised.
-
-#### New in version 0.7.1:
-
-> -   Add `magic()` and `magic_docopt()` aliases for `docopt()` allowing easier use of new features.
-
-#### New in version 0.7.0:
-
-> -   "MORE MAGIC"
-> -   First argument is now optional - `docopt()` will look for `__doc__` defined in parent scopes.
-> -   Dot access is supported on resulting `arguments` object,
->     ignoring angle brackets and leading dashes.
-> -   `more_magic` parameter added to `docopt()` defaults False.
-> -   If `more_magic` enabled, `arguments` variable created and populated
->     in calling scope with results.
-> -   If `more_magic` enabled, fuzzy (levenshtein) autocorrect enabled for long-args.
-> -   Lots of typehints.
-> -   README moved to Markdown.
-
-#### New in version 0.6.3:
-
-> -   Catch up on \~two years of pull requests.
-> -   Fork [docopt](https://github.com/docopt/docopt) to
->     [docopt-ng](https://github.com/bazaar-projects/docopt-ng).
-> -   Add levenshtein based autocorrect from
->     [string-dist](https://github.com/obulkin/string-dist).
-> -   Add better debug / error messages.
-> -   Linting (via [black](https://github.com/ambv/black) and
->     [flake8](https://gitlab.com/pycqa/flake8)).
-
-#### New in version 0.6.2:
-
-> -   Bugfixes
->
-#### New in version 0.6.1:
->
-> -   Fix issue [\#85](https://github.com/docopt/docopt/issues/85) which
->     caused improper handling of `[options]` shortcut if it was present
->     several times.
->
-#### New in version 0.6.0:
->
-> -   New argument `options_first`, disallows interspersing options and
->     arguments. If you supply `options_first=True` to `docopt`, it will
->     interpret all arguments as positional arguments after first
->     positional argument.
-> -   If option with argument could be repeated, its default value will
->     be interpreted as space-separated list. E.g. with
->     `[default: ./here ./there]` will be interpreted as
->     `['./here', './there']`.
-
-**docopt-ng** helps you create beautiful command-line interfaces *magically*:
-
-``` {.sourceCode .python}
-"""Naval Fate.
+```python
+"""Quick Example.
 
 Usage:
-  naval_fate.py ship new <name>...
-  naval_fate.py ship <name> move <x> <y> [--speed=<kn>]
-  naval_fate.py ship shoot <x> <y>
-  naval_fate.py mine (set|remove) <x> <y> [--moored | --drifting]
-  naval_fate.py (-h | --help)
-  naval_fate.py --version
+  example.py transport <host> <port> [--timeout=<seconds>] [--protocol=<protocol>]
+  example.py serial <port> [--baud=<n>] [--timeout=<seconds>]
+  example.py (-h | --help | --version)
 
 Options:
-  -h --help     Show this screen.
-  --version     Show version.
-  --speed=<kn>  Speed in knots [default: 10].
-  --moored      Moored (anchored) mine.
-  --drifting    Drifting mine.
-
+  -h, --help  Show this screen and exit.
+  --baud=<n>  Baudrate [default: 9600] [type: int]
+  --timeout=<seconds>  Timeout seconds [type: float]
+  --protocol=<protocol>  Transport protocol [choices: tcp udp]
 """
-from docopt import docopt
-
+from type_docopt import docopt
 
 if __name__ == '__main__':
-    arguments = docopt(__doc__, version='Naval Fate 2.0')
+    arguments = docopt(__doc__)
     print(arguments)
 ```
 
@@ -106,29 +38,30 @@ putting help message in the module docstrings.
 
 # Installation
 
-Use [pip](http://pip-installer.org) or easy\_install:
+With pip or easy\_install:
 
-    pip install docopt-ng
+```bash
+pip install type-docopt
+```
 
-Alternatively, you can just drop `docopt.py` file into your project--it
-is self-contained.
-
-**docopt-ng** is tested with Python 3.6 and 3.7.
+**type-docopt** is tested on Python 3.6+.
 
 # Testing
 
 You can run unit tests using the command:
 
-> python setup.py test
+```bash
+python setup.py test
+```
 
 # API
 
-``` {.sourceCode .python}
-from docopt import docopt
+```python
+from type_docopt import docopt
 ```
 
-``` {.sourceCode .python}
-docopt(docstring=None, argv=None, help=True, version=None, options_first=False, more_magic=False)
+```python
+docopt(docstring=None, argv=None, help_message=True, version=None, options_first=False, types=None)
 ```
 
 `docopt` takes 6 optional arguments:
@@ -139,7 +72,7 @@ docopt(docstring=None, argv=None, help=True, version=None, options_first=False, 
     are given in next sections. Here is a quick example of such a
     string:
 
-``` {.sourceCode .python}
+```python
 """Usage: my_program.py [-hso FILE] [--quiet | --verbose] [INPUT ...]
 
 -h --help    show this
@@ -156,12 +89,12 @@ docopt(docstring=None, argv=None, help=True, version=None, options_first=False, 
     argument vector passed to your program (`sys.argv[1:]`).
     Alternatively you can supply a list of strings like
     `['--verbose', '-o', 'hai.txt']`.
--   `help`, by default `True`, specifies whether the parser should
+-   `help_message`, by default `True`, specifies whether the parser should
     automatically print the help message (supplied as `doc`) and
     terminate, in case `-h` or `--help` option is encountered (options
     should exist in usage pattern, more on that below). If you want to
     handle `-h` or `--help` options manually (as other options), set
-    `help=False`.
+    `help_message=False`.
 -   `version`, by default `None`, is an optional argument that specifies
     the version of your program. If supplied, then, (assuming
     `--version` option is mentioned in usage pattern) when parser
@@ -180,36 +113,36 @@ docopt(docstring=None, argv=None, help=True, version=None, options_first=False, 
     with POSIX, or if you want to dispatch your arguments to other
     programs.
 
--   `more_magic`, by default `False`. If set to `True` more advanced
-    efforts will be made to correct `--long_form` arguments, ie:
-    `--hlep` will be corrected to `--help`. Additionally, if not
-    already defined, the variable `arguments` will be created and populated
-    in the calling scope. `more_magic` is also set True if `docopt()` is
-    is aliased to a name containing `magic` ie) by built-in`from docopt import magic` or
-    user-defined `from docopt import docopt as magic_docopt_wrapper` for convenience.
+-   `types`, by default `None`, is how you can provide custom types to
+    type-docopt. If given as a dictionary with type names as keys and 
+    type constructors as values, type-docopt converts argument values
+    to given type according to the type information of option description.
+    Basic types (int, float, complex, str) are readily available.
 
 The **return** value is a simple dictionary with options, arguments and
 commands as keys, spelled exactly like in your help message. Long
 versions of options are given priority. Furthermore, dot notation is
 supported, with preceeding dashes (`-`) and surrounding brackets (`<>`)
-ignored. For example, if you invoke the top example as:
+ignored. Dashes (`-`) between words are automatically converted to underscore (`_`).
+For example, if you invoke the top example as:
 
-    naval_fate.py ship Guardian move 100 150 --speed=15
+    python example.py transport 1.2.3.4 80 --timeout 0.5 --protocol tcp
 
 the return dictionary will be:
 
-``` {.sourceCode .python}
-{'--drifting': False,    'mine': False,
- '--help': False,        'move': True,
- '--moored': False,      'new': False,
- '--speed': '15',        'remove': False,
- '--version': False,     'set': False,
- '<name>': ['Guardian'], 'ship': True,
- '<x>': '100',           'shoot': False,
- '<y>': '150'}
+```python
+{'--baud': 9600,
+ '--help': False,
+ '--protocol': 'tcp',
+ '--timeout': 0.5,
+ '--version': False,
+ '<host>': '1.2.3.4',
+ '<port>': '80',
+ 'serial': False,
+ 'transport': True}
 ```
 
-...and properties can be accessed with `arguments.drifting` or `arguments.x`.
+...and properties can be accessed with `arguments.protocol` or `arguments.host`.
 
 # Help message format
 
@@ -217,13 +150,13 @@ Help message consists of 2 parts:
 
 -   Usage pattern, e.g.:
 
-        Usage: my_program.py [-hso FILE] [--quiet | --verbose] [INPUT ...]
+        Usage: my_program.py [-hsc COUNT] [--quiet | --verbose] [INPUT ...]
 
 -   Option descriptions, e.g.:
 
         -h --help    show this
         -s --sorted  sorted output
-        -o FILE      specify output file [default: ./test.txt]
+        -c COUNT     specify count number [default: 1] [type: int]
         --quiet      print less text
         --verbose    print more text
 
@@ -235,7 +168,7 @@ Their format is described below; other text is ignored.
 (case *insensitive*) and ends with a *visibly* empty line. Minimum
 example:
 
-``` {.sourceCode .python}
+```python
 """Usage: my_program.py
 
 """
@@ -245,7 +178,7 @@ The first word after `usage:` is interpreted as your program's name. You
 can specify your program's name several times to signify several
 exclusive patterns:
 
-``` {.sourceCode .python}
+```python
 """Usage: my_program.py FILE
           my_program.py COUNT FILE
 
@@ -384,17 +317,48 @@ The rules are as follows:
         # will be './here ./there', because it is not repeatable
         --not-repeatable=<arg>      [default: ./here ./there]
 
+-   If you would like to set type information for an option with an argument,
+    put it into the option-description, in form `[type: <my-type-name>]`.
+    You can use default value with type description:
+
+        --coefficient=K  The K coefficient [default: 2.95] [type: float]
+        --count=COUNT    Count number [type: int]
+    
+-   You can provide custom types to `type-docopt`. Make a dictionary with
+    type names as keys and constructors as values then give it to `type-docopt`.
+    You can also use default value with type description:
+
+    ```python
+    """Usage: my_program.py --output=FILE
+
+    Options:
+      --output=FILE  Output path [type: path]
+    """
+    from type_docopt import docopt
+    from pathlib import Path
+
+    if __name__ == '__main__':
+        arguments = docopt(__doc__, types={'path': Path})
+        print(arguments)
+    ```
+
+-   If you want to specify allowable values for the argument, you can put the information
+    into the option-description, in form `[choices: <1st-choice> <2nd-choice> <3rd-choice>]`.
+    Choices are deliminated by space. You can also use type and default value with choices:
+
+        --protocol=PROTOCOL  Protocol name [choices: tcp udp] [default: tcp]
+        --repeat=N           Number [choices: 1 2 3] [type: int]
+
 ## Examples
 
 We have an extensive list of
-[examples](https://github.com/bazaar-projects/docopt-ng/tree/master/examples)
-which cover every aspect of functionality of **docopt-ng**. Try them
+[examples](https://github.com/dreamgonfly/type-docopt/tree/master/examples)
+which cover every aspect of functionality of **type-docopt**. Try them
 out, read the source if in doubt.
 
 # Development
 
-We would *love* to hear what you think about **docopt-ng** on our
-[issues page](https://github.com/bazaar-projects/docopt-ng/issues)
+We would *love* to hear what you think about **type-docopt** on our
+[issues page](https://github.com/dreamgonfly/type-docopt/issues)
 
-Make pull requests, report bugs, suggest ideas and discuss
-**docopt-ng**.
+Make pull requests, report bugs, suggest ideas and discuss **type-docopt**.

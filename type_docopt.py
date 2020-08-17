@@ -1,6 +1,6 @@
 """Type-Docopt is a Pythonic command-line interface parser with type conversion.
 
-Based on docopt (https://github.com/docopt/docopt) and docopt-ng (https://github.com/bazaar-projects/docopt-ng)
+Based on docopt (https://github.com/docopt/docopt).
 """
 import sys
 import re
@@ -746,6 +746,9 @@ def docopt(
     options_first : bool (default: False)
         Set to True to require options precede positional arguments,
         i.e. to forbid options and positional arguments intermix.
+    types : dict
+        Provide user-defined types to parse type information in
+        docstring.
 
     Returns
     -------
