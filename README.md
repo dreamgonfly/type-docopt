@@ -36,6 +36,13 @@ it to make a parser*.
 Also, [PEP 257](http://www.python.org/dev/peps/pep-0257/) recommends
 putting help message in the module docstrings.
 
+**type-docopt** project is based on [docopt](https://github.com/docopt/docopt).
+docopt is a great project, but it lacks an important feature: type validation. 
+It intensionally refuses to adding argument validation feature
+(For one example, refer to [docopt#327](https://github.com/docopt/docopt/issues/327)).
+Furthermore, docopt seems not maintained anymore.
+**type-docopt** is a simple extension to docopt which adds type validation and conversion feature.
+
 # Installation
 
 With pip or easy\_install:
